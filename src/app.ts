@@ -1,12 +1,19 @@
-import express from 'express'
+import express, { Express } from 'express'
+import helmet from 'helmet'
 
+import { checkJwt } from './middlewares/auth'
 import authRouter from './routes/auth'
+import urlRouter from './routes/url'
 
-const app = express()
+const app: Express = express()
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
+app.use(helmet())
 
 app.use('/auth', authRouter)
+
+app.use(checkJwt)
+app.use('/urls', urlRouter)
 
 export default app
