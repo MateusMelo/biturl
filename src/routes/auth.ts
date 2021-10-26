@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import { body, validationResult } from 'express-validator'
-import jwt from 'jsonwebtoken'
+import jwt, { Secret } from 'jsonwebtoken'
 
 interface SignInBody {
   email: string
@@ -20,8 +20,7 @@ router.post('/',
     }
 
     const body: SignInBody = req.body
-
-    const token: string = jwt.sign({ email: body.email }, '123', { expiresIn: '1800s' })
+    const token: string = jwt.sign({ email: body.email }, process.env.JWT_SECRET as Secret, { expiresIn: '1800s' })
 
     return res.json({ token })
   })

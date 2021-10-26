@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import jwt from 'jsonwebtoken'
+import jwt, { Secret } from 'jsonwebtoken'
 
 export interface AuthorizedRequest extends Request {
   user: string
@@ -15,7 +15,7 @@ export async function checkJwt (
 
   if (token !== '') {
     try {
-      await jwt.verify(token, '123')
+      await jwt.verify(token, process.env.JWT_SECRET as Secret)
     } catch (e) {
       console.error(e)
       res.sendStatus(401)
