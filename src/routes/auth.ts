@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express'
 import { body, validationResult } from 'express-validator'
 import jwt, { Secret } from 'jsonwebtoken'
-
+import UserModel from './../models/User'
 interface SignInBody {
   email: string
   password: string
@@ -10,7 +10,7 @@ interface SignInBody {
 
 const router = Router()
 
-router.post('/',
+router.post('/sign-in',
   body('email').not().isEmpty().isEmail(),
   body('password').not().isEmpty(),
   (req: Request, res: Response) => {
@@ -26,16 +26,27 @@ router.post('/',
   })
 
 router.post('/sign-up',
+  body('name').not().isEmpty(),
   body('email').not().isEmpty().isEmail(),
   body('password').not().isEmpty(),
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() })
     }
 
-    return res.json({
-      token: '123'
+    const user = new UserModel({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password
+    })
+
+    await user.save()
+
+    return res.status(201).json({
+      id: user.id,
+      name: user.name,
+      email: user.email
     })
   })
 
