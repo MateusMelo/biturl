@@ -15,6 +15,13 @@ const isValidUser: CustomValidator = async value => {
   }
 }
 
+const emailExists: CustomValidator = async value => {
+  const user = await User.emailAlreadyExists(value)
+  if (user !== null) {
+    throw new Error('Email already exists')
+  }
+}
+
 const router = Router()
 
 router.post('/sign-in',
@@ -38,6 +45,7 @@ router.post('/sign-up',
   body('name').not().isEmpty(),
   body('email').not().isEmpty().isEmail(),
   body('password').not().isEmpty(),
+  body('email').custom(emailExists),
   async (req: Request, res: Response) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {

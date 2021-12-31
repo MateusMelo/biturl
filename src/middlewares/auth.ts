@@ -13,16 +13,18 @@ export async function checkJwt (
   const authHeader: string = req.headers.authorization ?? ''
   const token: string = authHeader.split('Bearer ').pop() ?? ''
 
-  if (token !== '') {
-    try {
-      await jwt.verify(token, process.env.JWT_SECRET as Secret)
-    } catch (e) {
-      console.error(e)
-      res.sendStatus(401)
-    }
-
-    next()
+  if (token === '') {
+    res.sendStatus(401)
+    return
   }
 
-  res.sendStatus(401)
+  try {
+    await jwt.verify(token, process.env.JWT_SECRET as Secret)
+  } catch (e) {
+    console.error(e)
+    res.sendStatus(401)
+    return
+  }
+
+  next()
 }

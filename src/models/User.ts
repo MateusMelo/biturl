@@ -1,4 +1,4 @@
-import { model, Schema, Model, Document } from 'mongoose';
+import { model, Schema, Model, Document } from 'mongoose'
 import bcrypt from 'bcrypt'
 export interface UserProps {
   name: string
@@ -7,9 +7,11 @@ export interface UserProps {
 }
 
 export interface UserDocument extends UserProps, Document {}
-export interface UserModel extends Model<UserDocument> {}
+export interface UserModel extends Model<UserDocument> {
+  emailAlreadyExists: (email: string) => Promise<UserDocument>
+}
 
-const UserSchema: Schema = new Schema({
+const UserSchema: Schema<UserDocument> = new Schema({
   name: { type: String },
   email: { type: String },
   password: { type: String }
@@ -23,6 +25,11 @@ const UserSchema: Schema = new Schema({
     }
   }
 })
+
+UserSchema.statics.emailAlreadyExists = async function (email) {
+  const user = await this.findOne({ email: email })
+  return user
+}
 
 UserSchema.pre<UserDocument>('save', async function (next) {
   if (!this.isModified('password')) next()
