@@ -1,21 +1,32 @@
-import { Schema, Document, model } from 'mongoose'
+import { model, Schema, Model, Document } from 'mongoose';
 import bcrypt from 'bcrypt'
-
-export interface User extends Document {
+export interface UserProps {
   name: string
   email: string
   password: string
 }
 
-const UserSchema = new Schema<User>({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  password: { type: String, required: true }
+export interface UserDocument extends UserProps, Document {}
+export interface UserModel extends Model<UserDocument> {}
+
+const UserSchema: Schema = new Schema({
+  name: { type: String },
+  email: { type: String },
+  password: { type: String }
+}, {
+  toJSON: {
+    transform: (document, ret) => {
+      ret.id = document._id
+      delete ret._id
+      delete ret.password
+      delete ret.__v
+    }
+  }
 })
 
-UserSchema.pre<User>('save', async function (next) {
+UserSchema.pre<UserDocument>('save', async function (next) {
   if (!this.isModified('password')) next()
   this.password = await bcrypt.hash(this.password, 10)
 })
 
-export default model<User>('User', UserSchema)
+export const User: UserModel = model<UserDocument, UserModel>('User', UserSchema)

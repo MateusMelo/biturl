@@ -1,11 +1,18 @@
 import { Request, Response, Router } from 'express'
-import { body, validationResult } from 'express-validator'
+import { body, validationResult, CustomValidator } from 'express-validator'
 import jwt, { Secret } from 'jsonwebtoken'
-import UserModel from './../models/User'
+import { User } from './../models/User'
 interface SignInBody {
   email: string
   password: string
   rememberMe: boolean
+}
+
+const isValidUser: CustomValidator = async value => {
+  const user = await User.findOne({ email: value })
+  if (user === null) {
+    throw new Error('Incorrect email or password')
+  }
 }
 
 const router = Router()
@@ -13,7 +20,8 @@ const router = Router()
 router.post('/sign-in',
   body('email').not().isEmpty().isEmail(),
   body('password').not().isEmpty(),
-  (req: Request, res: Response) => {
+  body('email').custom(isValidUser),
+  async (req: Request, res: Response) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() })
@@ -21,8 +29,9 @@ router.post('/sign-in',
 
     const body: SignInBody = req.body
     const token: string = jwt.sign({ email: body.email }, process.env.JWT_SECRET as Secret, { expiresIn: '1800s' })
+    const user = await User.findOne({ email: body.email })
 
-    return res.json({ token })
+    return res.json({ user, token })
   })
 
 router.post('/sign-up',
@@ -35,7 +44,7 @@ router.post('/sign-up',
       return res.status(400).json({ errors: errors.array() })
     }
 
-    const user = new UserModel({
+    const user = new User({
       name: req.body.name,
       email: req.body.email,
       password: req.body.password
