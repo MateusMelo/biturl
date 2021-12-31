@@ -4,18 +4,7 @@ import { expect } from 'chai'
 import mongoose from 'mongoose'
 import app from './../../../src/app'
 import { User } from './../../../src/models/User'
-
-const userPayload = {
-  name: 'test',
-  email: 'test@test.com',
-  password: 'test'
-}
-
-interface FakeUser {
-  name: String
-  email: String
-  password: String
-}
+import { createUser, removeUser, userPayload, invalidEmailUserPayload } from './../../mocks/user.mock'
 
 before(async () => {
   await mongoose.connect('mongodb://localhost:27017/biturl')
@@ -24,38 +13,58 @@ before(async () => {
 
 describe('routes/auth', () => {
   describe('sign-up', () => {
-    let fakeUser: FakeUser
-    beforeEach(() => {
-      fakeUser = {
-        name: faker.name.findName(),
-        email: faker.internet.email().toLowerCase(),
-        password: 'test'
-      }
+    afterEach(async () => {
+      await removeUser(userPayload)
     })
 
     it('should return 201 and signup user', async () => {
       const req = request(app)
       const res = await req.post('/auth/sign-up')
         .set('Content-Type', 'application/json')
-        .send(fakeUser)
+        .send(userPayload)
 
       expect(res.status).to.equal(201)
       expect(res.body).not.to.have.property('password')
       expect(res.body).to.have.property('id')
-      expect(res.body.name).to.equal(fakeUser.name)
-      expect(res.body.email).to.equal(fakeUser.email)
+      expect(res.body.name).to.equal(userPayload.name)
+      expect(res.body.email).to.equal(userPayload.email)
 
       if (!mongoose.Types.ObjectId.isValid(res.body.id)) throw new Error('Invalid object id')
       const user = await User.findById(res.body.id)
       if (user === null) throw new Error('User not found')
 
       expect(res.body.id).to.equal(user._id.toString())
-      expect(user.password).to.not.equal(fakeUser.password)
+      expect(user.password).to.not.equal(userPayload.password)
       expect(res.body.name).to.equal(user.name)
+    })
+
+    it('should return 400 if email is invalid', async () => {
+      const req = request(app)
+      const res = await req.post('/auth/sign-up')
+        .set('Content-Type', 'application/json')
+        .send(invalidEmailUserPayload)
+
+      expect(res.status).to.equal(400)
+      expect(res.body).to.have.property('errors')
+    })
+
+    it('should return 400 if email already exists', async () => {
+      await createUser(userPayload)
+      const req = request(app)
+      const res = await req.post('/auth/sign-up')
+        .set('Content-Type', 'application/json')
+        .send(userPayload)
+
+      expect(res.status).to.equal(400)
+      expect(res.body).to.have.property('errors')
     })
   })
 
   describe('auth/sign-in', () => {
+    before(async () => {
+      await createUser(userPayload)
+    })
+
     it('should return 200 and auth user if email and password match', async () => {
       const req = request(app)
       const res = await req.post('/auth/sign-in')
@@ -113,6 +122,10 @@ describe('routes/auth', () => {
 
       expect(res.status).to.equal(400)
       expect(res.body).to.have.property('errors')
+    })
+
+    after(async () => {
+      await removeUser(userPayload)
     })
   })
 })
