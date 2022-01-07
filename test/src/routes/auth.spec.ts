@@ -24,18 +24,22 @@ describe('routes/auth', () => {
         .send(userPayload)
 
       expect(res.status).to.equal(201)
-      expect(res.body).not.to.have.property('password')
-      expect(res.body).to.have.property('id')
-      expect(res.body.name).to.equal(userPayload.name)
-      expect(res.body.email).to.equal(userPayload.email)
+      expect(res.body).to.have.property('user')
+      expect(res.body.user).to.have.property('id')
+      expect(res.body.user).not.to.have.property('password')
+      expect(res.body.user.name).to.equal(userPayload.name)
+      expect(res.body.user.email).to.equal(userPayload.email)
+      expect(res.body).to.have.property('token')
+      expect(res.body.token).to.have.property('access')
+      expect(res.body.token).to.have.property('expires')
 
       if (!mongoose.Types.ObjectId.isValid(res.body.id)) throw new Error('Invalid object id')
       const user = await User.findById(res.body.id)
       if (user === null) throw new Error('User not found')
 
-      expect(res.body.id).to.equal(user._id.toString())
+      expect(res.body.user.id).to.equal(user._id.toString())
       expect(user.password).to.not.equal(userPayload.password)
-      expect(res.body.name).to.equal(user.name)
+      expect(res.body.user.name).to.equal(user.name)
     })
 
     it('should return 400 if email is invalid', async () => {
