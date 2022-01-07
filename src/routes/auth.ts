@@ -1,7 +1,10 @@
 import { Request, Response, Router } from 'express'
 import { body, validationResult, CustomValidator } from 'express-validator'
 import jwt, { Secret } from 'jsonwebtoken'
+import dayjs from 'dayjs'
 import { User } from './../models/User'
+import { UserToken } from './../models/UserToken'
+
 interface SignInBody {
   email: string
   password: string
@@ -33,10 +36,9 @@ router.post('/sign-in',
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() })
     }
-
     const body: SignInBody = req.body
-    const token: string = jwt.sign({ email: body.email }, process.env.JWT_SECRET as Secret, { expiresIn: '1800s' })
     const user = await User.findOne({ email: body.email })
+    const token: string = jwt.sign({ email: body.email }, process.env.JWT_SECRET as Secret, { expiresIn: '1800s' })
 
     return res.json({ user, token })
   })
@@ -57,14 +59,21 @@ router.post('/sign-up',
       email: req.body.email,
       password: req.body.password
     })
-
     await user.save()
 
-    return res.status(201).json({
-      id: user.id,
-      name: user.name,
-      email: user.email
+    const expiresAt = dayjs().add(10, 'minute')
+    const token: string = jwt.sign({
+      user: user.id,
+      exp: expiresAt.unix()
+    }, process.env.JWT_SECRET as Secret)
+    const userToken = new UserToken({
+      token,
+      user: user.id,
+      expiresAt: expiresAt.toDate()
     })
+    await userToken.save()
+
+    return res.status(201).json({ user, token: { access: userToken.token, expiresAt: userToken.expiresAt } })
   })
 
 export default router

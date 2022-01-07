@@ -31,10 +31,10 @@ describe('routes/auth', () => {
       expect(res.body.user.email).to.equal(userPayload.email)
       expect(res.body).to.have.property('token')
       expect(res.body.token).to.have.property('access')
-      expect(res.body.token).to.have.property('expires')
+      expect(res.body.token).to.have.property('expiresAt')
 
-      if (!mongoose.Types.ObjectId.isValid(res.body.id)) throw new Error('Invalid object id')
-      const user = await User.findById(res.body.id)
+      if (!mongoose.Types.ObjectId.isValid(res.body.user.id)) throw new Error('Invalid object id')
+      const user = await User.findById(res.body.user.id)
       if (user === null) throw new Error('User not found')
 
       expect(res.body.user.id).to.equal(user._id.toString())
