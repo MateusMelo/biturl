@@ -12,7 +12,7 @@ before(async () => {
 })
 
 describe('routes/auth', () => {
-  describe('sign-up', () => {
+  describe('POST /auth/sign-up', () => {
     afterEach(async () => {
       await removeUser(userPayload)
     })
@@ -60,7 +60,7 @@ describe('routes/auth', () => {
     })
   })
 
-  describe('auth/sign-in', () => {
+  describe('POST /auth/sign-in', () => {
     before(async () => {
       await createUser(userPayload)
     })
