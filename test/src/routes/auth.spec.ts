@@ -13,7 +13,7 @@ describe('routes/auth', () => {
   })
 
   describe('POST /auth/sign-up', () => {
-    after(async () => {
+    afterEach(async () => {
       await removeUser(userPayload)
     })
 
