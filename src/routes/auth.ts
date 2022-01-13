@@ -38,7 +38,21 @@ router.post('/sign-in',
     }
     const body: SignInBody = req.body
     const user = await User.findOne({ email: body.email })
-    const token: string = jwt.sign({ email: body.email }, process.env.JWT_SECRET as Secret, { expiresIn: '1800s' })
+    if (user === null) {
+      throw new Error('Incorrect email or password')
+    }
+
+    const expiresAt = dayjs().add(1, 'minute')
+    const token: string = jwt.sign({
+      user: user.id,
+      exp: expiresAt.unix()
+    }, process.env.JWT_SECRET as Secret)
+    const userToken = new UserToken({
+      token,
+      user: user.id,
+      expiresAt: expiresAt.toDate()
+    })
+    await userToken.save()
 
     return res.json({ user, token })
   })
@@ -61,7 +75,7 @@ router.post('/sign-up',
     })
     await user.save()
 
-    const expiresAt = dayjs().add(10, 'minute')
+    const expiresAt = dayjs().add(1, 'minute')
     const token: string = jwt.sign({
       user: user.id,
       exp: expiresAt.unix()
