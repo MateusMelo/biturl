@@ -1,7 +1,11 @@
 import { NextFunction, Request, Response } from 'express'
-import jwt, { Secret } from 'jsonwebtoken'
+import jwt, { Secret, JwtPayload } from 'jsonwebtoken'
+import { UserToken } from './../models/UserToken'
 
 export interface AuthorizedRequest extends Request {
+  user: string
+}
+export interface MyJwtPayload extends JwtPayload {
   user: string
 }
 
@@ -19,7 +23,11 @@ export async function checkJwt (
   }
 
   try {
-    await jwt.verify(token, process.env.JWT_SECRET as Secret)
+    const payload = jwt.verify(token, process.env.JWT_SECRET as Secret) as MyJwtPayload
+    const userToken = await UserToken.findOne({ token, user: payload.user, status: true })
+    if (userToken === null) {
+      throw new Error('UserToken not found')
+    }
   } catch (e) {
     console.error(e)
     res.sendStatus(401)
