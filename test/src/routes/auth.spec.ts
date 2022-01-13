@@ -1,19 +1,19 @@
 import request from 'supertest'
 import faker from 'faker'
 import { expect } from 'chai'
-import mongoose from 'mongoose'
+import { connect, Types } from 'mongoose'
 import app from './../../../src/app'
 import { User } from './../../../src/models/User'
 import { createUser, removeUser, userPayload, invalidEmailUserPayload } from './../../mocks/user.mock'
 
-before(async () => {
-  await mongoose.connect('mongodb://localhost:27017/biturl')
-    .catch(err => console.log(err))
-})
-
 describe('routes/auth', () => {
+  before(async () => {
+    await connect('mongodb://localhost:27017/biturl')
+      .catch(err => console.log(err))
+  })
+
   describe('POST /auth/sign-up', () => {
-    afterEach(async () => {
+    after(async () => {
       await removeUser(userPayload)
     })
 
@@ -33,7 +33,7 @@ describe('routes/auth', () => {
       expect(res.body.token).to.have.property('access')
       expect(res.body.token).to.have.property('expiresAt')
 
-      if (!mongoose.Types.ObjectId.isValid(res.body.user.id)) throw new Error('Invalid object id')
+      if (!Types.ObjectId.isValid(res.body.user.id)) throw new Error('Invalid object id')
       const user = await User.findById(res.body.user.id)
       if (user === null) throw new Error('User not found')
 
@@ -67,6 +67,10 @@ describe('routes/auth', () => {
   describe('POST /auth/sign-in', () => {
     before(async () => {
       await createUser(userPayload)
+    })
+
+    after(async () => {
+      await removeUser(userPayload)
     })
 
     it('should return 200 and auth user if email and password match', async () => {
@@ -126,10 +130,6 @@ describe('routes/auth', () => {
 
       expect(res.status).to.equal(400)
       expect(res.body).to.have.property('errors')
-    })
-
-    after(async () => {
-      await removeUser(userPayload)
     })
   })
 })
