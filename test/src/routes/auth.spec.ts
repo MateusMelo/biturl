@@ -4,12 +4,20 @@ import { expect } from 'chai'
 import { connect, Types } from 'mongoose'
 import app from './../../../src/app'
 import { User } from './../../../src/models/User'
+import { UserToken } from './../../../src/models/UserToken'
 import { createUser, removeUser, userPayload, invalidEmailUserPayload } from './../../mocks/user.mock'
 
 describe('routes/auth', () => {
   before(async () => {
-    await connect('mongodb://localhost:27017/biturl')
+    await connect('mongodb://localhost:27017/biturl-test')
       .catch(err => console.log(err))
+
+    await User.deleteMany({})
+    await UserToken.deleteMany({})
+  })
+  after(async () => {
+    await User.deleteMany({})
+    await UserToken.deleteMany({})
   })
 
   describe('POST /auth/sign-up', () => {
@@ -67,10 +75,6 @@ describe('routes/auth', () => {
   describe('POST /auth/sign-in', () => {
     before(async () => {
       await createUser(userPayload)
-    })
-
-    after(async () => {
-      await removeUser(userPayload)
     })
 
     it('should return 200 and auth user if email and password match', async () => {

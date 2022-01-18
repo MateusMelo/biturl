@@ -2,13 +2,18 @@ import request from 'supertest'
 import { expect } from 'chai'
 import mongoose from 'mongoose'
 import app from './../../../src/app'
-import { createUser, removeUser, userPayload } from './../../mocks/user.mock'
+import { User } from './../../../src/models/User'
+import { UserToken } from './../../../src/models/UserToken'
+import { createUser, userPayload } from './../../mocks/user.mock'
 
 let authToken = ''
 describe('routes/url', () => {
   before(async () => {
-    await mongoose.connect('mongodb://localhost:27017/biturl')
+    await mongoose.connect('mongodb://localhost:27017/biturl-test')
       .catch(err => console.log(err))
+
+    await User.deleteMany({})
+    await UserToken.deleteMany({})
 
     await createUser(userPayload)
     const req = request(app)
@@ -22,7 +27,8 @@ describe('routes/url', () => {
   })
 
   after(async () => {
-    await removeUser(userPayload)
+    await User.deleteMany({})
+    await UserToken.deleteMany({})
   })
 
   describe('GET /urls', () => {
