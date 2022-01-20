@@ -110,9 +110,14 @@ describe('routes/url', () => {
 
       expect(res.status).to.equal(200)
       expect(res.body).to.have.property('url')
-      expect(res.body.url).to.have.property('id')
-      expect(res.body.url).to.have.property('url')
-      expect(res.body.url).to.have.property('finalUrl')
+      expect(res.body).to.deep.equal({
+        url: {
+          id: newUrl.id,
+          url: newUrl.url,
+          finalUrl: newUrl.finalUrl,
+          tag: newUrl.tag
+        }
+      })
     })
 
     it('should return 200 and return empty when id is invalid', async () => {
