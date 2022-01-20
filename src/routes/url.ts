@@ -1,4 +1,6 @@
 import { Request, Response, Router } from 'express'
+import { Url } from './../../src/models/Url'
+import { body, validationResult } from 'express-validator'
 
 const router = Router()
 
@@ -8,14 +10,21 @@ router.get('/', (req: Request, res: Response) => {
   })
 })
 
-router.post('/', (req: Request, res: Response) => {
-  return res.status(201).json({
-    url: {
-      id: '123',
-      slug: 'qwer',
-      url: 'https://biturl/qwer'
+router.post('/',
+  body('url').not().isEmpty().isURL(),
+  async (req: Request, res: Response) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
     }
+    const url = new Url({
+      url: req.body.url
+    })
+    await url.save()
+
+    return res.status(201).json({
+      url
+    })
   })
-})
 
 export default router
