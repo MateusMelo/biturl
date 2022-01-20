@@ -6,6 +6,7 @@ import { User } from './../../../src/models/User'
 import { UserToken } from './../../../src/models/UserToken'
 import { Url } from './../../../src/models/Url'
 import { createUser, userPayload } from './../../mocks/user.mock'
+import { urlPayload, invalidUrlPayload } from './../../mocks/url.mock'
 
 let authToken = ''
 describe('routes/url', () => {
@@ -15,6 +16,7 @@ describe('routes/url', () => {
 
     await User.deleteMany({})
     await UserToken.deleteMany({})
+    await Url.deleteMany({})
 
     await createUser(userPayload)
     const req = request(app)
@@ -30,6 +32,7 @@ describe('routes/url', () => {
   after(async () => {
     await User.deleteMany({})
     await UserToken.deleteMany({})
+    await Url.deleteMany({})
   })
 
   describe('GET /urls', () => {
@@ -60,7 +63,7 @@ describe('routes/url', () => {
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          url: 'https://www.xd.com/qwer'
+          url: urlPayload.url
         })
 
       expect(res.status).to.equal(201)
@@ -73,12 +76,24 @@ describe('routes/url', () => {
       expect(res.body.url.url).to.equal(url.url)
     })
 
+    it('should return 400 if url is invalid', async () => {
+      const req = request(app)
+      const res = await req.post('/urls')
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          url: invalidUrlPayload.url
+        })
+
+      expect(res.status).to.equal(400)
+    })
+
     it('should return 401 when auth token is missing', async () => {
       const req = request(app)
       const res = await req.post('/urls')
         .set('Content-Type', 'application/json')
         .send({
-          url: 'https://www.xd.com/qwer'
+          url: urlPayload.url
         })
 
       expect(res.status).to.equal(401)
