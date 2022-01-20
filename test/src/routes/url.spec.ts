@@ -6,7 +6,7 @@ import { User } from './../../../src/models/User'
 import { UserToken } from './../../../src/models/UserToken'
 import { Url } from './../../../src/models/Url'
 import { createUser, userPayload } from './../../mocks/user.mock'
-import { urlPayload, invalidUrlPayload } from './../../mocks/url.mock'
+import { createUrl, urlPayload, invalidUrlPayload } from './../../mocks/url.mock'
 
 let authToken = ''
 describe('routes/url', () => {
@@ -95,6 +95,41 @@ describe('routes/url', () => {
         .send({
           url: urlPayload.url
         })
+
+      expect(res.status).to.equal(401)
+    })
+  })
+
+  describe('GET /urls/:id', () => {
+    it('should return 200 and return url detail', async () => {
+      const newUrl = await createUrl(urlPayload)
+      const req = request(app)
+      const res = await req.get(`/urls/${newUrl._id as string}`)
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${authToken}`)
+
+      expect(res.status).to.equal(200)
+      expect(res.body).to.have.property('url')
+      expect(res.body.url).to.have.property('id')
+      expect(res.body.url).to.have.property('url')
+      expect(res.body.url).to.have.property('finalUrl')
+    })
+
+    it('should return 200 and return empty when id is invalid', async () => {
+      const req = request(app)
+      const res = await req.get(`/urls/${123}`)
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${authToken}`)
+
+      expect(res.status).to.equal(200)
+      expect(res.body).to.deep.equal({ url: {} })
+    })
+
+    it('should return 401 when auth token is missing', async () => {
+      const newUrl = await createUrl(urlPayload)
+      const req = request(app)
+      const res = await req.get(`/urls/${newUrl._id as string}`)
+        .set('Content-Type', 'application/json')
 
       expect(res.status).to.equal(401)
     })
