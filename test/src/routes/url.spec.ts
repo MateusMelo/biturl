@@ -43,10 +43,38 @@ describe('routes/url', () => {
       expect(res.body.urls).to.be.a('array')
     })
 
-    it('should return 401 when missing auth token', async () => {
+    it('should return 401 when auth token is missing', async () => {
       const req = request(app)
       const res = await req.get('/urls')
         .set('Content-Type', 'application/json')
+
+      expect(res.status).to.equal(401)
+    })
+  })
+
+  describe('POST /urls', () => {
+    it('should return 201 and save url', async () => {
+      const req = request(app)
+      const res = await req.post('/urls')
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          url: 'https://biturl/qwer'
+        })
+
+      expect(res.status).to.equal(201)
+      expect(res.body).to.have.property('url')
+      expect(res.body.url).to.have.property('id')
+      expect(res.body.url.url).to.equal('https://biturl/qwer')
+    })
+
+    it('should return 401 when auth token is missing', async () => {
+      const req = request(app)
+      const res = await req.post('/urls')
+        .set('Content-Type', 'application/json')
+        .send({
+          url: 'https://biturl/qwer'
+        })
 
       expect(res.status).to.equal(401)
     })
