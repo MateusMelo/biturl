@@ -2,13 +2,14 @@ import { model, Schema, Model, Document } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 
 export interface UrlProps {
-  tag: string
   url: string
+}
+
+export interface UrlDocument extends UrlProps, Document {
+  tag: string
   finalUrl: string
   clicks: number
 }
-
-export interface UrlDocument extends UrlProps, Document {}
 export interface UrlModel extends Model<UrlDocument> {}
 
 const UrlSchema: Schema<UrlDocument> = new Schema({

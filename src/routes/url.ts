@@ -27,4 +27,20 @@ router.post('/',
     })
   })
 
+router.get('/:id', async (req: Request, res: Response) => {
+  let url
+  try {
+    url = await Url.findById(req.params.id)
+    if (url === null) {
+      url = {}
+    }
+  } catch (e) {
+    url = {}
+  }
+
+  return res.status(200).json({
+    url
+  })
+})
+
 export default router
