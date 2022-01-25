@@ -1,11 +1,12 @@
 import { connect } from 'mongoose'
 import { expect } from 'chai'
+import config from './../../../src/config/config'
 import { Url } from './../../../src/models/Url'
 import { urlPayload } from './../../mocks/url.mock'
 
 describe('Url model', () => {
   before(async () => {
-    await connect('mongodb://localhost:27017/biturl-test')
+    await connect(`mongodb://${config.mongodb.host as string}:${config.mongodb.port as string}/${config.mongodb.db as string}`)
       .catch(err => console.log(err))
   })
 

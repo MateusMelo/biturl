@@ -9,7 +9,7 @@ export default {
   mongodb: {
     host: process.env.MONGODB_HOST,
     port: process.env.MONGODB_PORT,
-    db: process.env.MONGODB_DATABASE
+    db: process.env.NODE_ENV === 'test' ? `${process.env.MONGODB_DATABASE as string}-test` : process.env.MONGODB_DATABASE
   },
   jwt: {
     secret: process.env.JWT_SECRET

@@ -3,13 +3,14 @@ import faker from 'faker'
 import { expect } from 'chai'
 import { connect, Types } from 'mongoose'
 import app from './../../../src/app'
+import config from './../../../src/config/config'
 import { User } from './../../../src/models/User'
 import { UserToken } from './../../../src/models/UserToken'
 import { createUser, removeUser, userPayload, invalidEmailUserPayload } from './../../mocks/user.mock'
 
 describe('routes/auth', () => {
   before(async () => {
-    await connect('mongodb://localhost:27017/biturl-test')
+    await connect(`mongodb://${config.mongodb.host as string}:${config.mongodb.port as string}/${config.mongodb.db as string}`)
       .catch(err => console.log(err))
 
     await User.deleteMany({})
