@@ -1,12 +1,13 @@
 import { connect } from 'mongoose'
+import config from './../src/config/config'
 import app from './app'
 
 let server
-connect('mongodb://localhost:27017/biturl')
+connect(`mongodb://${config.mongodb.host as string}:${config.mongodb.port as string}/${config.mongodb.db as string}`)
   .then(() => {
     console.log('Connected to MongoDB')
-    server = app.listen(5000, () => {
-      console.log('App is running at http://localhost:%d', 5000)
+    server = app.listen(config.port, () => {
+      console.log('App is running at http://localhost:%d', config.port)
     })
   }).catch(err => console.log(err))
 
