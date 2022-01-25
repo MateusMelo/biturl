@@ -4,9 +4,11 @@ import { body, validationResult } from 'express-validator'
 
 const router = Router()
 
-router.get('/', (req: Request, res: Response) => {
-  return res.json({
-    urls: []
+router.get('/', async (req: Request, res: Response) => {
+  const urls = await Url.find()
+
+  return res.status(200).json({
+    urls
   })
 })
 
